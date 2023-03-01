@@ -12,7 +12,7 @@ function DefaultLayout(props) {
       items={[
         {
           label: (
-            <li
+            <span
               className="btn btn-outline-success"
               onClick={() => {
                 localStorage.removeItem("expense-tracker-user");
@@ -20,19 +20,7 @@ function DefaultLayout(props) {
               }}
             >
               Logout
-            </li>
-          ),
-        },
-        {
-          label: (
-            <li
-              className="btn btn-outline-success"
-              onClick={() => {
-                navigate("/settings");
-              }}
-            >
-              Settings
-            </li>
+            </span>
           ),
         },
       ]}
@@ -44,7 +32,17 @@ function DefaultLayout(props) {
         <div>
           <h1 className="logo">EXPENSE TRACKER</h1>
         </div>
-        <div>
+        <div className="d-flex">
+          <div className="ml-5">
+            <span
+                className="btn btn-outline-light"
+                onClick={() => {
+                  navigate("/settings");
+                }}
+              >
+                Settings
+            </span>
+          </div>
           <Dropdown overlay={menu} placement="bottomLeft">
             <button className="primary profile-button">
               <UserOutlined />
