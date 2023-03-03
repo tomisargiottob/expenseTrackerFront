@@ -25,12 +25,6 @@ function AddEditAccount({
 
   const handleChange = (event) => {
     setValue(event.target.value);
-
-    if (event.target.value < 0) {
-      setDialog({ title: ' Error', content: 'Value of amount cannot be negative' });
-      setOpen(true);
-      document.getElementById("accountForm").reset();
-    }
   };
   const onFinish = async (values) => {
     const isValid = validateFormInput(values)
@@ -39,7 +33,7 @@ function AddEditAccount({
       const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
       setLoading(true);
       if (selectedItemForEdit) {
-        await axios.patch(`/api/organizations/${user.organization}/accounts/${selectedItemForEdit._id}`, {
+        await axios.put(`/api/organizations/${user.organization}/accounts/${selectedItemForEdit._id}`, {
           payload: {
             ...values,
             userid: user._id,
@@ -52,7 +46,7 @@ function AddEditAccount({
           ...values,
         });
         getAccounts();
-        message.success("Transaction added successfully");
+        message.success("Account added successfully");
       }
       setShowAddEditAccountModal(false);
       setSelectedItemForEdit(null);
@@ -96,7 +90,6 @@ function AddEditAccount({
     );
   };
 
-  console.log('en el modal',showAddEditAccountModal)
   return (
     <Modal
       title={selectedItemForEdit ? 'Edit Account' : 'Add Account'}
