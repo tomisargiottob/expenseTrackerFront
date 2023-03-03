@@ -24,21 +24,24 @@ function Home() {
   const [type, setType] = useState("all");
   const [selectedRange, setSelectedRange] = useState([]);
   const [viewType, setViewType] = useState("table");
+
   const getTransactions = async () => {
     try {
       const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
 
       setLoading(true);
-      const response = await axios.post(
-        "/api/transactions/get-all-transactions",
+      const response = await axios.get(
+        `/api/organizations/${user.organization}/transactions`,
         {
-          organization: user.organization,
-          frequency,
-          ...(frequency === "custom" && { selectedRange }),
-          type,
+          params: {
+            frequency,
+            ...(frequency === "custom" && { selectedRange }),
+            type,
+          }
         }
       );
-      setTransactionsData(response.data);
+      const transactions = response.data.map((transaction) => ({...transaction, key: transaction._id}))
+      setTransactionsData(transactions);
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -70,6 +73,14 @@ function Home() {
       title: "Date",
       dataIndex: "date",
       render: (text) => <span>{moment(text).format("YYYY-MM-DD")}</span>,
+    },
+    {
+      title: "Account",
+      dataIndex: "amount",
+    },
+    {
+      title: "Account Type",
+      dataIndex: "accountType",
     },
     {
       title: "Amount",
