@@ -9,9 +9,10 @@ import {
   DeleteOutlined,
 } from "@ant-design/icons";
 import AddEditAccount from "../components/AddEditAccount";
+import AddEditCategory from "../components/AddEditCategory";
 
 function Settings() {
-  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
+  const [showAddEditCategoryModal, setShowAddEditCategoryModal] = useState(false);
   const [showAddEditAccountModal, setShowAddEditAccountModal] = useState(false);
   const [selectedItemForEdit, setSelectedItemForEdit] = useState(null);
   const [loadingAccounts, setLoadingAccounts] = useState(false);
@@ -21,7 +22,6 @@ function Settings() {
   const getAccounts = async () => {
     try {
       const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
-      console.log(user)
       setLoadingAccounts(true);
       const response = await axios.get(
         `/api/organizations/${user.organization}/accounts`,
@@ -29,7 +29,8 @@ function Settings() {
           organization: user.organization,
         }
       );
-      setAccountsData(response.data);
+      const accounts = response.data.map((account) => ({...account, key: account._id}))
+      setAccountsData(accounts);
       setLoadingAccounts(false);
     } catch (error) {
         setLoadingAccounts(false);
@@ -44,7 +45,8 @@ function Settings() {
       const response = await axios.get(
         `/api/organizations/${user.organization}/categories`,
       );
-      setCategoriesData(response.data);
+      const categories = response.data.map((category) => ({...category, key: category._id}))
+      setCategoriesData(categories);
       setLoadingCategories(false);
     } catch (error) {
         setLoadingCategories(false);
@@ -58,10 +60,24 @@ function Settings() {
       setLoadingAccounts(true);
       await axios.delete(`/api/organizations/${user.organization}/account/${record._id}`)
       message.success("Transaction Deleted successfully");
-      getAccounts();
+      await getAccounts();
       setLoadingAccounts(false);
     } catch (error) {
       setLoadingAccounts(false);
+      message.error("Something went wrong");
+    }
+  };
+
+  const deleteCategory = async (record) => {
+    try {
+      const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
+      setLoadingCategories(true);
+      await axios.delete(`/api/organizations/${user.organization}/categories/${record._id}`)
+      message.success("Category Deleted successfully");
+      await getCategories();
+      setLoadingCategories(false);
+    } catch (error) {
+      setLoadingCategories(false);
       message.error("Something went wrong");
     }
   };
@@ -96,6 +112,43 @@ function Settings() {
       },
     },
   ];
+
+  const categoryColumns = [
+    {
+      title: "Name",
+      dataIndex: "name",
+    },
+    {
+      title: "Description",
+      dataIndex: "description",
+    },
+    {
+      title: "Type",
+      dataIndex: "type",
+    },
+    {
+      title: "Actions",
+      dataIndex: "actions",
+      render: (text, record) => {
+        return (
+          <div>
+            <EditOutlined
+              onClick={() => {
+                setSelectedItemForEdit(record);
+                setShowAddEditAccountModal(true);
+              }}
+            />
+            <DeleteOutlined
+              className="mx-3"
+              onClick={() => deleteCategory(record)}
+            />
+          </div>
+        );
+      },
+    },
+  ];
+
+
   const getPaginationConfiguration = (data, pageSize) => data.length > pageSize ? {pageSize} : false
   console.log(showAddEditAccountModal)
   useEffect(() => {
@@ -105,25 +158,51 @@ function Settings() {
 
   return (
     <DefaultLayout>
-      {loadingAccounts && <Spinner />}
-      <div className="d-flex justify-content-between mb-3">
-        <h2>Accounts</h2>
-        <button
-          className="primary"
-          onClick={() => setShowAddEditAccountModal(true)}
-        >
-          ADD NEW
-        </button>
-      </div>
-      <div className="filter d-flex justify-content-between align-items-center">
-        <div className="d-flex">
-          <div className="table-analtics">  
-            <div className="table">
-              <Table columns={columns} dataSource={accountsData} pagination={getPaginationConfiguration(accountsData,10)}/>
-            </div> 
+      {loadingAccounts ? <Spinner /> : (
+        <>
+          <div className="d-flex justify-content-between mb-3">
+            <h2>Accounts</h2>
+            <button
+              className="primary"
+              onClick={() => setShowAddEditAccountModal(true)}
+            >
+              ADD NEW
+            </button>
           </div>
-        </div>
-      </div>
+          <div className="filter d-flex justify-content-between align-items-center">
+            <div className="d-flex">
+              <div className="table-analtics">  
+                <div className="table">
+                  <Table columns={columns} dataSource={accountsData} pagination={getPaginationConfiguration(accountsData,10)}/>
+                </div> 
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {loadingCategories ? <Spinner /> : (
+        <>
+          <div className="d-flex justify-content-between mb-3 mt-5">
+            <h2>Categories</h2>
+            <button
+              className="primary"
+              onClick={() => setShowAddEditCategoryModal(true)}
+            >
+              ADD NEW
+            </button>
+          </div>
+          <div className="filter d-flex justify-content-between align-items-center">
+            <div className="d-flex">
+              <div className="table-analtics">  
+                <div className="table">
+                  <Table columns={categoryColumns} dataSource={categoriesData} pagination={getPaginationConfiguration(accountsData,10)}/>
+                </div> 
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       {showAddEditAccountModal && (
         <AddEditAccount
@@ -131,6 +210,16 @@ function Settings() {
           setShowAddEditAccountModal={setShowAddEditAccountModal}
           selectedItemForEdit={selectedItemForEdit}
           getAccounts={getAccounts}
+          setSelectedItemForEdit={setSelectedItemForEdit}
+        />
+      )}
+
+      {showAddEditCategoryModal && (
+        <AddEditCategory
+          showAddEditCategoryModal={showAddEditCategoryModal}
+          setShowAddEditCategoryModal={setShowAddEditCategoryModal}
+          selectedItemForEdit={selectedItemForEdit}
+          getCategories={getCategories}
           setSelectedItemForEdit={setSelectedItemForEdit}
         />
       )}
