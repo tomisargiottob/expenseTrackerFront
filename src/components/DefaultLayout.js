@@ -33,9 +33,19 @@ function DefaultLayout(props) {
           <h1 className="logo">EXPENSE TRACKER</h1>
         </div>
         <div className="d-flex">
-          <div className="ml-5">
+          <div className="mr-5">
             <span
-                className="btn btn-outline-light"
+                className="btn text-white"
+                onClick={() => {
+                  navigate("/");
+                }}
+              >
+                Home
+            </span>
+          </div>
+          <div className="mr-5">
+            <span
+                className="btn text-white"
                 onClick={() => {
                   navigate("/settings");
                 }}
