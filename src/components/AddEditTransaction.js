@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Form, Input, message, Modal, Select } from "antd";
 import Spinner from "./Spinner";
 import axios from "axios";
@@ -20,6 +20,7 @@ function AddEditTransaction({
 }) {
   const [loading, setLoading] = useState(false);
   const [value, setValue] = useState("");
+  const [accountsData, setAccountsData] = useState([])
   const [open, setOpen] = useState(false);
   const [dialog, setDialog] = useState({title: '', content: ''})
 
@@ -32,6 +33,20 @@ function AddEditTransaction({
       document.getElementById("myForm").reset();
     }
   };
+
+  const getAccounts = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
+      const response = await axios.get(
+        `/api/organizations/${user.organization}/accounts`,
+      );
+      setAccountsData(response.data);
+    } catch (error) {
+      message.error("Something went wrong");
+    }
+  };
+
+
   const onFinish = async (values) => {
     const isValid = validateFormInput(values)
     if(!isValid) return;
@@ -39,17 +54,14 @@ function AddEditTransaction({
       const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
       setLoading(true);
       if (selectedItemForEdit) {
-        await axios.post("/api/transactions/edit-transaction", {
-          payload: {
-            ...values,
-            userid: user._id,
-          },
-          transactionId: selectedItemForEdit._id,
+        await axios.patch(`/api/organizations/${user.organization}/transactions/${selectedItemForEdit._id}`, {
+          ...values,
+          organization: user.organization,
         });
         getTransactions();
         message.success("Transaction Updated successfully");
       } else {
-        await axios.post("/api/transactions/add-transaction", {
+        await axios.post(`/api/organizations/${user.organization}/transactions`, {
           ...values,
           organization: user.organization,
         });
@@ -104,6 +116,9 @@ function AddEditTransaction({
     );
   };
 
+  useEffect(() => {
+    getAccounts()
+  },[])
 
   return (
     <Modal
@@ -123,8 +138,9 @@ function AddEditTransaction({
       >
         <Form.Item label="Account" name="account" id="account" value={value} onBlur={handleChange} >
           <Select>
-            <Select.Option value="salary">Tomas Sargiotto</Select.Option>
-            <Select.Option value="freelance">Fernando Sargiotto</Select.Option>
+            {accountsData.map((account) => {
+              return (<Select.Option key={account._id} value={account._id}>{account.name}</Select.Option>)             
+            })}
           </Select>
         </Form.Item>
         <Form.Item label="Account type" name="accountType" id="accountType" value={value} onBlur={handleChange}>
