@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, message, Modal, Select } from "antd";
+import { Form, Input, message, Modal, Select, Row, Col } from "antd";
 import Spinner from "./Spinner";
 import axios from "axios";
 import {
@@ -21,6 +21,7 @@ function AddEditTransaction({
   const [loading, setLoading] = useState(false);
   const [value, setValue] = useState("");
   const [accountsData, setAccountsData] = useState([])
+  const [categoriesData, setCategoriesData] = useState([])
   const [open, setOpen] = useState(false);
   const [dialog, setDialog] = useState({title: '', content: ''})
 
@@ -45,6 +46,18 @@ function AddEditTransaction({
       message.error("Something went wrong");
     }
   };
+  
+  const getCategories = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
+      const response = await axios.get(
+        `/api/organizations/${user.organization}/categories`,
+      );
+      setCategoriesData(response.data);
+    } catch (error) {
+      message.error("Something went wrong");
+    }
+  };
 
 
   const onFinish = async (values) => {
@@ -58,14 +71,14 @@ function AddEditTransaction({
           ...values,
           organization: user.organization,
         });
-        getTransactions();
+        await getTransactions();
         message.success("Transaction Updated successfully");
       } else {
         await axios.post(`/api/organizations/${user.organization}/transactions`, {
           ...values,
           organization: user.organization,
         });
-        getTransactions();
+        await getTransactions();
         message.success("Transaction added successfully");
       }
       setShowAddEditTransactionModal(false);
@@ -118,6 +131,7 @@ function AddEditTransaction({
 
   useEffect(() => {
     getAccounts()
+    getCategories()
   },[])
 
   return (
@@ -136,48 +150,54 @@ function AddEditTransaction({
         initialValues={selectedItemForEdit}
         id="myForm"
       >
-        <Form.Item label="Account" name="account" id="account" value={value} onBlur={handleChange} >
-          <Select>
-            {accountsData.map((account) => {
-              return (<Select.Option key={account._id} value={account._id}>{account.name}</Select.Option>)             
-            })}
-          </Select>
-        </Form.Item>
-        <Form.Item label="Account type" name="accountType" id="accountType" value={value} onBlur={handleChange}>
-          <Select>
-            <Select.Option value="salary">Banco</Select.Option>
-            <Select.Option value="freelance">Zenrise</Select.Option>
-          </Select>
-        </Form.Item>
+         
         <Form.Item label="Date" name="date" rules={[
           {message: 'Invalid Date!', validator: validateDate}
         ]}>
           <Input type="date" />
         </Form.Item>
+        <Row>
+          <Col span={11}>
+            <Form.Item label="Account" name="account" id="account" value={value} onBlur={handleChange} >
+              <Select>
+                {accountsData.map((account) => {
+                  return (<Select.Option key={account._id} value={account._id}>{account.name}</Select.Option>)             
+                })}
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={11} offset={2}>
+            <Form.Item label="Account type" name="accountType" id="accountType" value={value} onBlur={handleChange}>
+              <Select>
+                <Select.Option value="bank">Banco</Select.Option>
+                <Select.Option value="zenrise">Zenrise</Select.Option>
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Row>
+          <Col span={11} >
+            <Form.Item label="Type" name="type">
+              <Select>
+                <Select.Option value="income">Income</Select.Option>
+                <Select.Option value="expense">Expense</Select.Option>
+              </Select>
+            </Form.Item>
+          </Col>
+          <Col span={11} offset={2}>
+            <Form.Item label="Category" name="category">
+              <Select>
+              {categoriesData.map((category) => {
+                  return (<Select.Option title={category.description} key={category._id} value={category._id}>{category.name}</Select.Option>)             
+                })}
+              </Select>
+            </Form.Item>
+          </Col>
+        </Row>
 
         <Form.Item label="Amount" name="amount" id="value" value={value} onBlur={handleChange}>
           <Input type="text" />
-        </Form.Item>
-
-        <Form.Item label="Type" name="type">
-          <Select>
-            <Select.Option value="income">Income</Select.Option>
-            <Select.Option value="expense">Expense</Select.Option>
-          </Select>
-        </Form.Item>
-
-        <Form.Item label="Category" name="category">
-          <Select>
-            <Select.Option value="salary">Salary</Select.Option>
-            <Select.Option value="freelance">Freelance</Select.Option>
-            <Select.Option value="food">Food</Select.Option>
-            <Select.Option value="entertainment">Entertainment</Select.Option>
-            <Select.Option value="investment">Investment</Select.Option>
-            <Select.Option value="travel">Travel</Select.Option>
-            <Select.Option value="education">Education</Select.Option>
-            <Select.Option value="medical">Medical</Select.Option>
-            <Select.Option value="tax">Tax</Select.Option>
-          </Select>
         </Form.Item>
 
         <Form.Item label="Reference" name="reference">
