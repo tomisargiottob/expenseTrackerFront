@@ -52,11 +52,10 @@ function Home() {
   const deleteTransaction = async (record) => {
     try {
       setLoading(true);
-      await axios.post("/api/transactions/delete-transaction", {
-        transactionId: record._id,
-      });
+      const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
+      await axios.delete(`/api/organizations/${user.organization}/transactions/${record._id}`);
       message.success("Transaction Deleted successfully");
-      getTransactions();
+      await getTransactions();
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -76,7 +75,8 @@ function Home() {
     },
     {
       title: "Account",
-      dataIndex: "amount",
+      dataIndex: "account",
+      render: item => item.name,
     },
     {
       title: "Account Type",
@@ -89,6 +89,7 @@ function Home() {
     {
       title: "Category",
       dataIndex: "category",
+      render: item => item.name,
     },
     {
       title: "Type",
