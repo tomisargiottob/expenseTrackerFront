@@ -33,19 +33,14 @@ function AddEditAccount({
       const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
       setLoading(true);
       if (selectedItemForEdit) {
-        await axios.put(`/api/organizations/${user.organization}/accounts/${selectedItemForEdit._id}`, {
-          payload: {
-            ...values,
-            userid: user._id,
-          },
-        });
-        getAccounts();
+        await axios.put(`/api/organizations/${user.organization}/accounts/${selectedItemForEdit._id}`, 
+          values,
+        );
+        await getAccounts();
         message.success("Account Updated successfully");
       } else {
-        await axios.post(`/api/organizations/${user.organization}/accounts`, {
-          ...values,
-        });
-        getAccounts();
+        await axios.post(`/api/organizations/${user.organization}/accounts`, values);
+        await getAccounts();
         message.success("Account added successfully");
       }
       setShowAddEditAccountModal(false);

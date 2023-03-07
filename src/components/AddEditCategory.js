@@ -35,19 +35,12 @@ function AddEditCategory({
       const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
       setLoading(true);
       if (selectedItemForEdit) {
-        await axios.put(`/api/organizations/${user.organization}/categories/${selectedItemForEdit._id}`, {
-          payload: {
-            ...values,
-            userid: user._id,
-          },
-        });
-        getCategories();
+        await axios.put(`/api/organizations/${user.organization}/categories/${selectedItemForEdit._id}`,values);
+        await getCategories();
         message.success("Categoty Updated successfully");
       } else {
-        await axios.post(`/api/organizations/${user.organization}/categories`, {
-          ...values,
-        });
-        getCategories();
+        await axios.post(`/api/organizations/${user.organization}/categories`,values);
+        await getCategories();
         message.success("Category added successfully");
       }
       setShowAddEditCategoryModal(false);
