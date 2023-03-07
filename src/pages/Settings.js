@@ -58,8 +58,8 @@ function Settings() {
     try {
       const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
       setLoadingAccounts(true);
-      await axios.delete(`/api/organizations/${user.organization}/account/${record._id}`)
-      message.success("Transaction Deleted successfully");
+      await axios.delete(`/api/organizations/${user.organization}/accounts/${record._id}`)
+      message.success("Account Deleted successfully");
       await getAccounts();
       setLoadingAccounts(false);
     } catch (error) {
@@ -150,7 +150,6 @@ function Settings() {
 
 
   const getPaginationConfiguration = (data, pageSize) => data.length > pageSize ? {pageSize} : false
-  console.log(showAddEditAccountModal)
   useEffect(() => {
     getAccounts();
     getCategories();
