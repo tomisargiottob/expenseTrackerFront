@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Form, Input, message, Modal, Select } from "antd";
+import { Form, Input, message, Modal } from "antd";
 import Spinner from "./Spinner";
 import axios from "axios";
 import {
@@ -11,12 +11,12 @@ import {
   DialogTitle,
 } from "@mui/material";
 
-function AddEditAccount({
-  setShowAddEditAccountModal,
-  showAddEditAccountModal,
+function AddEditAccountType({
+  setShowAddEditAccountTypeModal,
+  showAddEditAccountTypeModal,
   selectedItemForEdit,
   setSelectedItemForEdit,
-  getAccounts,
+  getAccountTypes,
 }) {
   const [loading, setLoading] = useState(false);
   const [value, setValue] = useState("");
@@ -33,17 +33,17 @@ function AddEditAccount({
       const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
       setLoading(true);
       if (selectedItemForEdit) {
-        await axios.put(`/api/organizations/${user.organization}/accounts/${selectedItemForEdit._id}`, 
+        await axios.put(`/api/organizations/${user.organization}/accountTypes/${selectedItemForEdit._id}`, 
           values,
         );
-        await getAccounts();
-        message.success("Account Updated successfully");
+        await getAccountTypes();
+        message.success("Account type Updated successfully");
       } else {
-        await axios.post(`/api/organizations/${user.organization}/accounts`, values);
-        await getAccounts();
-        message.success("Account added successfully");
+        await axios.post(`/api/organizations/${user.organization}/accountTypes`, values);
+        await getAccountTypes();
+        message.success("Account type added successfully");
       }
-      setShowAddEditAccountModal(false);
+      setShowAddEditAccountTypeModal(false);
       setSelectedItemForEdit(null);
       setLoading(false);
     } catch (error) {
@@ -87,9 +87,9 @@ function AddEditAccount({
 
   return (
     <Modal
-      title={selectedItemForEdit ? 'Edit Account' : 'Add Account'}
-      visible={showAddEditAccountModal}
-      onCancel={() => setShowAddEditAccountModal(false)}
+      title={selectedItemForEdit ? 'Edit Account type' : 'Add Account type'}
+      visible={showAddEditAccountTypeModal}
+      onCancel={() => setShowAddEditAccountTypeModal(false)}
       footer={false}
     >
       <CustomDialog open={open} onClose={resetDialog} title={dialog.title} content={dialog.content} />
@@ -115,4 +115,4 @@ function AddEditAccount({
   );
 }
 
-export default AddEditAccount;
+export default AddEditAccountType;

@@ -10,30 +10,47 @@ import {
 } from "@ant-design/icons";
 import AddEditAccount from "../components/AddEditAccount";
 import AddEditCategory from "../components/AddEditCategory";
+import AddEditAccountType from "../components/AddEditAccountType";
 
 function Settings() {
   const [showAddEditCategoryModal, setShowAddEditCategoryModal] = useState(false);
   const [showAddEditAccountModal, setShowAddEditAccountModal] = useState(false);
+  const [showAddEditAccountTypeModal, setShowAddEditAccountTypeModal] = useState(false);
   const [selectedItemForEdit, setSelectedItemForEdit] = useState(null);
   const [loadingAccounts, setLoadingAccounts] = useState(false);
+  const [loadingAccountTypes, setLoadingAccountTypes] = useState(false);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [accountsData, setAccountsData] = useState([]);
   const [categoriesData, setCategoriesData] = useState([]);
+  const [accountTypesData, setAccountTypesData] = useState([]);
+
+
   const getAccounts = async () => {
     try {
       const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
       setLoadingAccounts(true);
       const response = await axios.get(
-        `/api/organizations/${user.organization}/accounts`,
-        {
-          organization: user.organization,
-        }
-      );
+        `/api/organizations/${user.organization}/accounts`);
       const accounts = response.data.map((account) => ({...account, key: account._id}))
       setAccountsData(accounts);
       setLoadingAccounts(false);
     } catch (error) {
         setLoadingAccounts(false);
+      message.error("Something went wrong");
+    }
+  };
+  const getAccountTypes = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
+      setLoadingAccountTypes(true);
+      const response = await axios.get(
+        `/api/organizations/${user.organization}/accountTypes`,
+      );
+      const accountTypes = response.data.map((accountType) => ({...accountType, key: accountType._id}))
+      setAccountTypesData(accountTypes);
+      setLoadingAccountTypes(false);
+    } catch (error) {
+      setLoadingAccountTypes(false);
       message.error("Something went wrong");
     }
   };
@@ -68,6 +85,20 @@ function Settings() {
     }
   };
 
+  const deleteAccountType = async (record) => {
+    try {
+      const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
+      setLoadingAccountTypes(true);
+      await axios.delete(`/api/organizations/${user.organization}/accountTypes/${record._id}`)
+      message.success("Account type deleted successfully");
+      await getAccountTypes();
+      setLoadingAccountTypes(false);
+    } catch (error) {
+      setLoadingAccountTypes(false);
+      message.error("Something went wrong");
+    }
+  };
+
   const deleteCategory = async (record) => {
     try {
       const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
@@ -88,8 +119,31 @@ function Settings() {
       dataIndex: "name",
     },
     {
-      title: "Type",
-      dataIndex: "type",
+      title: "Actions",
+      dataIndex: "actions",
+      render: (text, record) => {
+        return (
+          <div>
+            <EditOutlined
+              onClick={() => {
+                setSelectedItemForEdit(record);
+                setShowAddEditAccountTypeModal(true);
+              }}
+            />
+            <DeleteOutlined
+              className="mx-3"
+              onClick={() => deleteAccountType(record)}
+            />
+          </div>
+        );
+      },
+    },
+  ];
+
+  const accountTypesColumns = [
+    {
+      title: "Name",
+      dataIndex: "name",
     },
     {
       title: "Actions",
@@ -135,7 +189,7 @@ function Settings() {
             <EditOutlined
               onClick={() => {
                 setSelectedItemForEdit(record);
-                setShowAddEditAccountModal(true);
+                setShowAddEditCategoryModal(true);
               }}
             />
             <DeleteOutlined
@@ -153,6 +207,7 @@ function Settings() {
   useEffect(() => {
     getAccounts();
     getCategories();
+    getAccountTypes();
   }, []);
 
   return (
@@ -203,6 +258,29 @@ function Settings() {
         </>
       )}
 
+      {loadingAccountTypes ? <Spinner /> : (
+        <>
+          <div className="d-flex justify-content-between mb-3 mt-5">
+            <h2>Account Types</h2>
+            <button
+              className="primary"
+              onClick={() => setShowAddEditAccountTypeModal(true)}
+            >
+              ADD NEW
+            </button>
+          </div>
+          <div className="filter d-flex justify-content-between align-items-center">
+            <div className="d-flex">
+              <div className="table-analtics">  
+                <div className="table">
+                  <Table columns={accountTypesColumns} dataSource={accountTypesData} pagination={getPaginationConfiguration(accountTypesData,10)}/>
+                </div> 
+              </div>
+            </div>
+          </div>
+        </>
+      )}  
+
       {showAddEditAccountModal && (
         <AddEditAccount
           showAddEditAccountModal={showAddEditAccountModal}
@@ -219,6 +297,16 @@ function Settings() {
           setShowAddEditCategoryModal={setShowAddEditCategoryModal}
           selectedItemForEdit={selectedItemForEdit}
           getCategories={getCategories}
+          setSelectedItemForEdit={setSelectedItemForEdit}
+        />
+      )}
+
+      {showAddEditAccountTypeModal && (
+        <AddEditAccountType
+          showAddEditAccountTypeModal={showAddEditAccountTypeModal}
+          setShowAddEditAccountTypeModal={setShowAddEditAccountTypeModal}
+          selectedItemForEdit={selectedItemForEdit}
+          getAccountTypes={getAccountTypes}
           setSelectedItemForEdit={setSelectedItemForEdit}
         />
       )}
