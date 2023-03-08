@@ -22,6 +22,8 @@ function AddEditTransaction({
   const [value, setValue] = useState("");
   const [accountsData, setAccountsData] = useState([])
   const [categoriesData, setCategoriesData] = useState([])
+  const [accountTypesData, setAccountTypesData] = useState([])
+
   const [open, setOpen] = useState(false);
   const [dialog, setDialog] = useState({title: '', content: ''})
 
@@ -42,6 +44,18 @@ function AddEditTransaction({
         `/api/organizations/${user.organization}/accounts`,
       );
       setAccountsData(response.data);
+    } catch (error) {
+      message.error("Something went wrong");
+    }
+  };
+
+  const getAccountTypes = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
+      const response = await axios.get(
+        `/api/organizations/${user.organization}/accountTypes`,
+      );
+      setAccountTypesData(response.data);
     } catch (error) {
       message.error("Something went wrong");
     }
@@ -132,6 +146,7 @@ function AddEditTransaction({
   useEffect(() => {
     getAccounts()
     getCategories()
+    getAccountTypes()
   },[])
 
   return (
@@ -159,7 +174,14 @@ function AddEditTransaction({
         <Row>
           <Col span={11}>
             <Form.Item label="Account" name="account" id="account" value={value} onBlur={handleChange} >
-              <Select>
+              <Select 
+                showSearch={true} 
+                placeholder='Select account'
+                optionFilterProp="children"
+                filterOption={(input, option) =>
+                  option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                }
+                >
                 {accountsData.map((account) => {
                   return (<Select.Option key={account._id} value={account._id}>{account.name}</Select.Option>)             
                 })}
@@ -168,9 +190,15 @@ function AddEditTransaction({
           </Col>
           <Col span={11} offset={2}>
             <Form.Item label="Account type" name="accountType" id="accountType" value={value} onBlur={handleChange}>
-              <Select>
-                <Select.Option value="bank">Banco</Select.Option>
-                <Select.Option value="zenrise">Zenrise</Select.Option>
+              <Select 
+                optionFilterProp="children"
+                filterOption={(input, option) =>
+                  option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                }
+                placeholder="Search Account Type">
+                {accountTypesData.map((account) => {
+                  return (<Select.Option key={account._id} value={account._id}>{account.name}</Select.Option>)             
+                })}
               </Select>
             </Form.Item>
           </Col>
@@ -179,7 +207,7 @@ function AddEditTransaction({
         <Row>
           <Col span={11} >
             <Form.Item label="Type" name="type">
-              <Select>
+              <Select placeholder="Select movement type">
                 <Select.Option value="income">Income</Select.Option>
                 <Select.Option value="expense">Expense</Select.Option>
               </Select>
@@ -187,7 +215,13 @@ function AddEditTransaction({
           </Col>
           <Col span={11} offset={2}>
             <Form.Item label="Category" name="category">
-              <Select>
+              <Select
+                optionFilterProp="children"
+                filterOption={(input, option) =>
+                  option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                }
+                placeholder='Select category type'
+              >
               {categoriesData.map((category) => {
                   return (<Select.Option title={category.description} key={category._id} value={category._id}>{category.name}</Select.Option>)             
                 })}
@@ -197,15 +231,15 @@ function AddEditTransaction({
         </Row>
 
         <Form.Item label="Amount" name="amount" id="value" value={value} onBlur={handleChange}>
-          <Input type="text" />
+          <Input placeholder="Insert amount" type="text" />
         </Form.Item>
 
         <Form.Item label="Reference" name="reference">
-          <Input type="text" />
+          <Input placeholder="Insert reference" type="text" />
         </Form.Item>
 
         <Form.Item label="Description" name="description">
-          <Input type="text" />
+          <Input placeholder="Insert description" type="text" />
         </Form.Item>
 
         <div className="d-flex justify-content-end">
