@@ -1,7 +1,10 @@
-import { Progress } from "antd";
-import React from "react";
+import { Progress, message } from "antd";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import "../resources/analytics.css";
 function Analytics({ transactions, type }) {
+  const [categories, setCategories] =useState([])
+
   const totalTransactions = transactions.length;
   const totalIncomeTransactions = transactions.filter(
     (transaction) => transaction.type === "income"
@@ -30,35 +33,38 @@ function Analytics({ transactions, type }) {
   const totalExpenseTurnoverPercentage =
     ((totalExpenseTurnover / totalTurnover) || 0) * 100;
 
-  const categories = [
-    "salary",
-    "entertainment",
-    "freelance",
-    "food",
-    "travel",
-    "investment",
-    "education",
-    "medical",
-    "tax",
-  ];
-
+  const getCategories = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
+      const response = await axios.get(
+        `/api/organizations/${user.organization}/categories`,
+      );
+      setCategories(response.data);
+    } catch (error) {
+      message.error("Something went wrong");
+    }
+  };
   const EmptyPlaceholder = ({message}) => <div className="empty-placeholder">{message}</div>
 
   const CategoryWiseTransactionChart = ({transactionType, totalTurnOver}) => {
     const incomeList = []
     categories.forEach((category) => {
       const amount = transactions
-        .filter((t) => t.type === transactionType && t.category === category)
+        .filter((t) => t.type === transactionType && t.category._id === category._id)
         .reduce((acc, t) => acc + t.amount, 0);
-        amount > 0 && incomeList.push(
-          <div className="category-card">
-            <h5>{category}</h5>
-            <Progress strokeColor="#0B5AD9" percent={((amount / totalTurnOver) * 100).toFixed( 0 )} />
-          </div>
-        );
+      amount > 0 && incomeList.push(
+        <div className="category-card">
+          <h5>{category.name}</h5>
+          <Progress strokeColor="#0B5AD9" percent={((amount / totalTurnOver) * 100).toFixed( 0 )} />
+        </div>
+      );
     })
     return incomeList.length ? incomeList : <EmptyPlaceholder message={`No ${transactionType} found for the selected duration and type`}/>
   }
+
+  useEffect(() =>{
+    getCategories()
+  },[])
 
   return (
     <div className="analytics">
