@@ -81,6 +81,7 @@ function Home() {
     {
       title: "Account Type",
       dataIndex: "accountType",
+      render: item => item.name,
     },
     {
       title: "Amount",
