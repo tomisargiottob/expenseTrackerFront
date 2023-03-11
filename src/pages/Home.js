@@ -23,12 +23,24 @@ function Home() {
   const [frequency, setFrequency] = useState("7");
   const [type, setType] = useState("all");
   const [selectedRange, setSelectedRange] = useState([]);
-  const [viewType, setViewType] = useState("table");
+  const [selectedAccount, setSelectedAccount] = useState("all")
+  const [selectedAccountType, setSelectedAccountType] = useState("all")
+  const [selectedCategory, setSelectedCategory] = useState("all")
 
-  const getTransactions = async () => {
+
+  const [viewType, setViewType] = useState("table");
+  const [accountsData, setAccountsData] = useState([])
+  const [categoriesData, setCategoriesData] = useState([])
+  const [accountTypesData, setAccountTypesData] = useState([])
+
+  const getTransactions = async (frequency, selectedRange, type, selectedAccount, selectedCategory, selectedAccountType) => {
     try {
       const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
-
+      const selectionFilter = {
+        account: selectedAccount === 'all' ? undefined : selectedAccount,
+        category: selectedCategory === 'all' ? undefined : selectedCategory,
+        accountType: selectedAccountType === 'all' ? undefined : selectedAccountType
+      }
       setLoading(true);
       const response = await axios.get(
         `/api/organizations/${user.organization}/transactions`,
@@ -37,6 +49,7 @@ function Home() {
             frequency,
             ...(frequency === "custom" && { selectedRange }),
             type,
+            ...selectionFilter
           }
         }
       );
@@ -63,9 +76,54 @@ function Home() {
     }
   };
 
+  const getAccounts = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
+      const response = await axios.get(
+        `/api/organizations/${user.organization}/accounts`,
+      );
+      setAccountsData(response.data);
+    } catch (error) {
+      message.error("Something went wrong");
+    }
+  };
+
+  const getAccountTypes = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
+      const response = await axios.get(
+        `/api/organizations/${user.organization}/accountTypes`,
+      );
+      setAccountTypesData(response.data);
+    } catch (error) {
+      message.error("Something went wrong");
+    }
+  };
+  
+  const getCategories = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
+      const response = await axios.get(
+        `/api/organizations/${user.organization}/categories`,
+      );
+      setCategoriesData(response.data);
+    } catch (error) {
+      message.error("Something went wrong");
+    }
+  };
+
+
   useEffect(() => {
-    getTransactions();
-  }, [frequency, selectedRange, type]);
+    console.log('busco transactions')
+    getTransactions(frequency, selectedRange, type, selectedAccount, selectedCategory, selectedAccountType);
+  }, [frequency, selectedRange, type,selectedAccount, selectedCategory, selectedAccountType]);
+
+  useEffect(()=> {
+    console.log('ejecuto')
+    getAccountTypes()
+    getAccounts()
+    getCategories()
+  },[])
 
   const columns = [
     {
@@ -155,6 +213,54 @@ function Home() {
               <Select.Option value="expense">Expense</Select.Option>
             </Select>
           </div>
+          <div className="d-flex flex-column mx-5">
+            <h6>Select Account</h6>
+            <Select 
+              showSearch={true} 
+              placeholder='Select account'
+              optionFilterProp="children"
+              filterOption={(input, option) =>
+                option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+              onSelect={(values) => setSelectedAccount(values)}
+              >
+              <Select.Option value="all">All</Select.Option>
+              {accountsData.map((account) => {
+                return (<Select.Option key={account._id} value={account._id}>{account.name}</Select.Option>)             
+              })}
+            </Select>
+          </div>
+          <div className="d-flex flex-column mx-5">
+            <h6>Select Account Type</h6>
+            <Select 
+              optionFilterProp="children"
+              filterOption={(input, option) =>
+                option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+              onSelect={(values) => setSelectedAccountType(values)}
+              placeholder="Search Account Type">
+              <Select.Option value="all">All</Select.Option>
+              {accountTypesData.map((account) => {
+                return (<Select.Option key={account._id} value={account._id}>{account.name}</Select.Option>)             
+              })}
+            </Select>
+          </div>
+          <div className="d-flex flex-column mx-5">
+            <h6>Select Category</h6>
+            <Select
+              optionFilterProp="children"
+              filterOption={(input, option) =>
+                option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+              placeholder='Select category type'
+              onSelect={(values) => setSelectedCategory(values)}
+            >
+            <Select.Option value="all">All</Select.Option>
+            {categoriesData.map((category) => {
+                return (<Select.Option title={category.description} key={category._id} value={category._id}>{category.name}</Select.Option>)             
+              })}
+            </Select>
+          </div>
         </div>
 
         <div className="d-flex">
@@ -191,7 +297,7 @@ function Home() {
             <Table columns={columns} dataSource={transactionsData} pagination={getPaginationConfiguration(10)}/>
           </div>
         ) : (
-          <Analytics transactions={transactionsData} type={type}/>
+          <Analytics transactions={transactionsData} categories={categoriesData} type={type}/>
         )}
       </div>
 
@@ -202,6 +308,9 @@ function Home() {
           selectedItemForEdit={selectedItemForEdit}
           getTransactions={getTransactions}
           setSelectedItemForEdit={setSelectedItemForEdit}
+          accountsData={accountsData}
+          accountsTypeData={accountTypesData}
+          categoriesData = {categoriesData}
         />
       )}
     </DefaultLayout>

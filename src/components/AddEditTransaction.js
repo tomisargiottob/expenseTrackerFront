@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Form, Input, message, Modal, Select, Row, Col } from "antd";
+import React, { useState } from "react";
+import { Form, Input, message, Modal, Select, Row, Col, Checkbox } from "antd";
 import Spinner from "./Spinner";
 import axios from "axios";
 import {
@@ -17,12 +17,15 @@ function AddEditTransaction({
   selectedItemForEdit,
   setSelectedItemForEdit,
   getTransactions,
+  accountsData,
+  accountTypesData,
+  categoriesData
 }) {
   const [loading, setLoading] = useState(false);
   const [value, setValue] = useState("");
-  const [accountsData, setAccountsData] = useState([])
-  const [categoriesData, setCategoriesData] = useState([])
-  const [accountTypesData, setAccountTypesData] = useState([])
+
+  const [saveAndContinue, setSaveAndContinue] = useState(false)
+  const [form] = Form.useForm();
 
   const [open, setOpen] = useState(false);
   const [dialog, setDialog] = useState({title: '', content: ''})
@@ -36,43 +39,6 @@ function AddEditTransaction({
       document.getElementById("myForm").reset();
     }
   };
-
-  const getAccounts = async () => {
-    try {
-      const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
-      const response = await axios.get(
-        `/api/organizations/${user.organization}/accounts`,
-      );
-      setAccountsData(response.data);
-    } catch (error) {
-      message.error("Something went wrong");
-    }
-  };
-
-  const getAccountTypes = async () => {
-    try {
-      const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
-      const response = await axios.get(
-        `/api/organizations/${user.organization}/accountTypes`,
-      );
-      setAccountTypesData(response.data);
-    } catch (error) {
-      message.error("Something went wrong");
-    }
-  };
-  
-  const getCategories = async () => {
-    try {
-      const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
-      const response = await axios.get(
-        `/api/organizations/${user.organization}/categories`,
-      );
-      setCategoriesData(response.data);
-    } catch (error) {
-      message.error("Something went wrong");
-    }
-  };
-
 
   const onFinish = async (values) => {
     const isValid = validateFormInput(values)
@@ -95,7 +61,11 @@ function AddEditTransaction({
         await getTransactions();
         message.success("Transaction added successfully");
       }
-      setShowAddEditTransactionModal(false);
+      if(!saveAndContinue) {
+        setShowAddEditTransactionModal(false);
+      } else {
+        form.resetFields(['amount', 'description','reference'])
+      }
       setSelectedItemForEdit(null);
       setLoading(false);
     } catch (error) {
@@ -143,12 +113,6 @@ function AddEditTransaction({
     );
   };
 
-  useEffect(() => {
-    getAccounts()
-    getCategories()
-    getAccountTypes()
-  },[])
-
   return (
     <Modal
       title={selectedItemForEdit ? 'Edit Transaction' : 'Add Transaction'}
@@ -159,6 +123,7 @@ function AddEditTransaction({
       <CustomDialog open={open} onClose={resetDialog} title={dialog.title} content={dialog.content} />
       {loading && <Spinner />}
       <Form
+        form={form}
         layout="vertical"
         className="transaction-form"
         onFinish={onFinish}
@@ -241,7 +206,9 @@ function AddEditTransaction({
         <Form.Item label="Description" name="description">
           <Input placeholder="Insert description" type="text" />
         </Form.Item>
-
+        <div className="d-flex justify-content-end">
+          <Checkbox onChange={(value) => setSaveAndContinue(value)}>Save & continue</Checkbox>
+        </div>
         <div className="d-flex justify-content-end">
           <button className="primary" type="submit">
             SAVE
