@@ -309,7 +309,7 @@ function Home() {
           getTransactions={getTransactions}
           setSelectedItemForEdit={setSelectedItemForEdit}
           accountsData={accountsData}
-          accountsTypeData={accountTypesData}
+          accountTypesData={accountTypesData}
           categoriesData = {categoriesData}
         />
       )}

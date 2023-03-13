@@ -23,6 +23,7 @@ function AddEditTransaction({
 }) {
   const [loading, setLoading] = useState(false);
   const [value, setValue] = useState("");
+  const [editInformation, setEditInformation] = useState({})
 
   const [saveAndContinue, setSaveAndContinue] = useState(false)
   const [form] = Form.useForm();
@@ -113,6 +114,20 @@ function AddEditTransaction({
     );
   };
 
+  if(selectedItemForEdit && !Object.keys(editInformation).length) {
+    setEditInformation({
+      _id: selectedItemForEdit._id,
+      account: selectedItemForEdit.account._id,
+      accountType: selectedItemForEdit.accountType._id,
+      amount: selectedItemForEdit.amount,
+      category: selectedItemForEdit.category._id,
+      date: new Date(selectedItemForEdit.date).toISOString().slice(0,10),
+      description: selectedItemForEdit.description,
+      reference: selectedItemForEdit.reference,
+      type: selectedItemForEdit.type,
+    })
+  }
+  console.log(editInformation, selectedItemForEdit)
   return (
     <Modal
       title={selectedItemForEdit ? 'Edit Transaction' : 'Add Transaction'}
@@ -127,7 +142,7 @@ function AddEditTransaction({
         layout="vertical"
         className="transaction-form"
         onFinish={onFinish}
-        initialValues={selectedItemForEdit}
+        initialValues={editInformation}
         id="myForm"
       >
          
