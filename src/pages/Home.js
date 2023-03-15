@@ -1,4 +1,4 @@
-import { DatePicker, message, Select, Table,Row, Col } from "antd";
+import { DatePicker, message, Table } from "antd";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import AddEditTransaction from "../components/AddEditTransaction";
@@ -11,11 +11,10 @@ import {
   EditOutlined,
   DeleteOutlined,
   FilterFilled,
-  CloseOutlined
 } from "@ant-design/icons";
 import moment from "moment";
 import Analytics from "../components/Analytics";
-const { RangePicker } = DatePicker;
+import TableFilters from "../components/TableFilter";
 
 function Home() {
   const [showAddEditTransactionModal, setShowAddEditTransactionModal] =
@@ -23,27 +22,28 @@ function Home() {
   const [selectedItemForEdit, setSelectedItemForEdit] = useState(null);
   const [loading, setLoading] = useState(false);
   const [transactionsData, setTransactionsData] = useState([]);
-  const [frequency, setFrequency] = useState("7");
   const [showFilters, setShowFilters] = useState(false)
-  const [type, setType] = useState("all");
-  const [selectedRange, setSelectedRange] = useState([]);
-  const [selectedAccount, setSelectedAccount] = useState("all")
-  const [selectedAccountType, setSelectedAccountType] = useState("all")
-  const [selectedCategory, setSelectedCategory] = useState("all")
-
+  const [formValues, setFormValues] = useState({
+    frequency: "30",
+    selectedRange: null,
+    type: 'all',
+    account: 'all',
+    category: 'all',
+    accountType: 'all'
+  })
 
   const [viewType, setViewType] = useState("table");
   const [accountsData, setAccountsData] = useState([])
   const [categoriesData, setCategoriesData] = useState([])
   const [accountTypesData, setAccountTypesData] = useState([])
 
-  const getTransactions = async (frequency, selectedRange, type, selectedAccount, selectedCategory, selectedAccountType) => {
+  const getTransactions = async ({frequency, selectedRange, type, account, category, accountType}) => {
     try {
       const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
       const selectionFilter = {
-        account: selectedAccount === 'all' ? undefined : selectedAccount,
-        category: selectedCategory === 'all' ? undefined : selectedCategory,
-        accountType: selectedAccountType === 'all' ? undefined : selectedAccountType
+        account: account === 'all' ? undefined : account,
+        category: category === 'all' ? undefined : category,
+        accountType: accountType === 'all' ? undefined : accountType
       }
       setLoading(true);
       const response = await axios.get(
@@ -62,6 +62,15 @@ function Home() {
       setLoading(false);
     } catch (error) {
       setLoading(false);
+      message.error("Something went wrong");
+    }
+  };
+
+  const onFinish = async (values) => {
+    try {
+      setShowFilters(false)
+      setFormValues(values)
+    } catch (error) {
       message.error("Something went wrong");
     }
   };
@@ -118,12 +127,10 @@ function Home() {
 
 
   useEffect(() => {
-    console.log('busco transactions')
-    getTransactions(frequency, selectedRange, type, selectedAccount, selectedCategory, selectedAccountType);
-  }, [frequency, selectedRange, type,selectedAccount, selectedCategory, selectedAccountType]);
+    getTransactions(formValues);
+  }, [formValues]);
 
   useEffect(()=> {
-    console.log('ejecuto')
     getAccountTypes()
     getAccounts()
     getCategories()
@@ -189,121 +196,43 @@ function Home() {
   return (
     <DefaultLayout>
       {showFilters && 
-        <div className="filter-container">
-          <Row className="filter-header">
-            <Col>
-              <CloseOutlined 
-                onClick={() => setShowFilters(false)}
-                size={30}
-              />
-            </Col>
-          </Row>
-          <Row className="filter-section"> 
-          <div className="d-flex flex-column filter-select">
-            <h6>Select Frequency</h6>
-            <Select value={frequency} onChange={(value) => setFrequency(value)}>
-              <Select.Option value="7">Last 1 Week</Select.Option>
-              <Select.Option value="30">Last 1 Month</Select.Option>
-              <Select.Option value="365">Last 1 Year</Select.Option>
-              <Select.Option value="custom">Custom</Select.Option>
-            </Select>
+      <>
+        <div className='modal-backdrop' onClick={() => setShowFilters(false)}></div>
+        <TableFilters 
+        accountTypesData={accountTypesData} 
+        accountsData={accountsData} 
+        categoriesData={categoriesData} 
+        setShowFilters={setShowFilters}
+        applyFilters={onFinish}
+        filterValues={formValues}
+        />
+      </>
+      }
 
-            {frequency === "custom" && (
-              <div className="mt-2">
-                <RangePicker
-                  value={selectedRange}
-                  onChange={(values) => setSelectedRange(values)}
-                />
-              </div>
-            )}
-          </div>
-          <div className="d-flex flex-column mx-2 filter-select">
-            <h6>Select Type</h6>
-            <Select value={type} onChange={(value) => setType(value)}>
-              <Select.Option value="all">All</Select.Option>
-              <Select.Option value="income">Income</Select.Option>
-              <Select.Option value="expense">Expense</Select.Option>
-            </Select>
-          </div>
-          <div className="d-flex flex-column mx-2 filter-select">
-            <h6>Select Account</h6>
-            <Select 
-              showSearch={true} 
-              placeholder='Select account'
-              optionFilterProp="children"
-              filterOption={(input, option) =>
-                option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-              }
-              onSelect={(values) => setSelectedAccount(values)}
-              >
-              <Select.Option value="all">All</Select.Option>
-              {accountsData.map((account) => {
-                return (<Select.Option key={account._id} value={account._id}>{account.name}</Select.Option>)             
-              })}
-            </Select>
-          </div>
-          <div className="d-flex flex-column mx-2 filter-select">
-            <h6>Select Account Type</h6>
-            <Select 
-              optionFilterProp="children"
-              filterOption={(input, option) =>
-                option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-              }
-              onSelect={(values) => setSelectedAccountType(values)}
-              placeholder="Search Account Type">
-              <Select.Option value="all">All</Select.Option>
-              {accountTypesData.map((account) => {
-                return (<Select.Option key={account._id} value={account._id}>{account.name}</Select.Option>)             
-              })}
-            </Select>
-          </div>
-          <div className="d-flex flex-column mx-2 filter-select">
-            <h6>Select Category</h6>
-            <Select
-              optionFilterProp="children"
-              filterOption={(input, option) =>
-                option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-              }
-              placeholder='Select category type'
-              onSelect={(values) => setSelectedCategory(values)}
-            >
-            <Select.Option value="all">All</Select.Option>
-            {categoriesData.map((category) => {
-                return (<Select.Option title={category.description} key={category._id} value={category._id}>{category.name}</Select.Option>)             
-              })}
-            </Select>
-          </div>
-        </Row>
-      </div>}
       {loading && <Spinner />}
+
       <div className="filter d-flex justify-content-between align-items-center">
+        <div className="view-switch mx-5">
+          <UnorderedListOutlined
+            className={`mx-3 ${
+              viewType === "table" ? "active-icon" : "inactive-icon"
+            } `}
+            onClick={() => setViewType("table")}
+            size={30}
+          />
+          <AreaChartOutlined
+            className={`${
+              viewType === "analytics" ? "active-icon" : "inactive-icon"
+            } `}
+            onClick={() => setViewType("analytics")}
+            size={30}
+          />
+        </div>
         <div className="d-flex">
-          <div>
+          <div className="filter-button"  onClick={() => setShowFilters(true)}>
             <FilterFilled
-              onClick={() => setShowFilters(true)}
               size={30}
             />
-          </div>
-        </div>
-
-        <div className="d-flex">
-          <div>
-            <div className="view-switch mx-5">
-              <UnorderedListOutlined
-                className={`mx-3 ${
-                  viewType === "table" ? "active-icon" : "inactive-icon"
-                } `}
-                onClick={() => setViewType("table")}
-                size={30}
-              />
-              <AreaChartOutlined
-                className={`${
-                  viewType === "analytics" ? "active-icon" : "inactive-icon"
-                } `}
-                onClick={() => setViewType("analytics")}
-                size={30}
-              />
-            </div>
           </div>
           <button
             className="primary"
@@ -311,7 +240,7 @@ function Home() {
           >
             ADD NEW
           </button>
-        </div>
+        </div>       
       </div>
 
       <div className="table-analtics">
@@ -320,7 +249,7 @@ function Home() {
             <Table columns={columns} dataSource={transactionsData} pagination={getPaginationConfiguration(10)}/>
           </div>
         ) : (
-          <Analytics transactions={transactionsData} categories={categoriesData} type={type}/>
+          <Analytics transactions={transactionsData} categories={categoriesData} type={formValues.type}/>
         )}
       </div>
 

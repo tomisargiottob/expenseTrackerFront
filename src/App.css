@@ -4,9 +4,9 @@
 }
 .filter-container{
     position: absolute;
-    left: 180px;
-    top: 120px;
-    max-width: 230px;
+    right: 260px;
+    top: 140px;
+    max-width: 240px;
     z-index: 1000;
     background-color: white;
     border-radius: 8px;
@@ -19,4 +19,41 @@
 
 .filter-select{
     width: 100% !important;
+}
+
+.filter-section div{
+    padding-right: 10px; 
+}
+
+.filter-button{
+    border: 1px solid black;
+    padding: 5px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: rgba(255, 255, 255, 0.041);
+    height: 100%;
+    width: 100vw;
+    z-index: 1;
+  }
+.form-item-filter{
+    flex-direction: column !important;
+    align-items: left !important;
+    margin-bottom: 0px !important;
+}
+.form-item-filter .ant-form-item-control,
+.form-item-filter .ant-form-item-control-input,
+.ant-form-item-control-input-content,
+.ant-select{
+    margin-bottom: 0px !important;
+}
+.form-item-filter label{
+    width: 100% !important;
+    color: black !important;
 }
