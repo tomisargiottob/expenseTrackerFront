@@ -1,0 +1,22 @@
+.filter-header{
+    display: flex;
+    justify-content: end;
+}
+.filter-container{
+    position: absolute;
+    left: 180px;
+    top: 120px;
+    max-width: 230px;
+    z-index: 1000;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 5px 5px 10px 10px rgb(0 0 0 / 0.2);
+    padding: 10px;
+}
+.filter-container div{
+    margin-bottom: 5px;
+}
+
+.filter-select{
+    width: 100% !important;
+}

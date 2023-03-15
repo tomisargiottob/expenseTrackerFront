@@ -1,4 +1,4 @@
-import { DatePicker, message, Select, Table } from "antd";
+import { DatePicker, message, Select, Table,Row, Col } from "antd";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import AddEditTransaction from "../components/AddEditTransaction";
@@ -10,10 +10,13 @@ import {
   AreaChartOutlined,
   EditOutlined,
   DeleteOutlined,
+  FilterFilled,
+  CloseOutlined
 } from "@ant-design/icons";
 import moment from "moment";
 import Analytics from "../components/Analytics";
 const { RangePicker } = DatePicker;
+
 function Home() {
   const [showAddEditTransactionModal, setShowAddEditTransactionModal] =
     useState(false);
@@ -21,6 +24,7 @@ function Home() {
   const [loading, setLoading] = useState(false);
   const [transactionsData, setTransactionsData] = useState([]);
   const [frequency, setFrequency] = useState("7");
+  const [showFilters, setShowFilters] = useState(false)
   const [type, setType] = useState("all");
   const [selectedRange, setSelectedRange] = useState([]);
   const [selectedAccount, setSelectedAccount] = useState("all")
@@ -184,10 +188,18 @@ function Home() {
 
   return (
     <DefaultLayout>
-      {loading && <Spinner />}
-      <div className="filter d-flex justify-content-between align-items-center">
-        <div className="d-flex">
-          <div className="d-flex flex-column">
+      {showFilters && 
+        <div className="filter-container">
+          <Row className="filter-header">
+            <Col>
+              <CloseOutlined 
+                onClick={() => setShowFilters(false)}
+                size={30}
+              />
+            </Col>
+          </Row>
+          <Row className="filter-section"> 
+          <div className="d-flex flex-column filter-select">
             <h6>Select Frequency</h6>
             <Select value={frequency} onChange={(value) => setFrequency(value)}>
               <Select.Option value="7">Last 1 Week</Select.Option>
@@ -205,7 +217,7 @@ function Home() {
               </div>
             )}
           </div>
-          <div className="d-flex flex-column mx-5">
+          <div className="d-flex flex-column mx-2 filter-select">
             <h6>Select Type</h6>
             <Select value={type} onChange={(value) => setType(value)}>
               <Select.Option value="all">All</Select.Option>
@@ -213,7 +225,7 @@ function Home() {
               <Select.Option value="expense">Expense</Select.Option>
             </Select>
           </div>
-          <div className="d-flex flex-column mx-5">
+          <div className="d-flex flex-column mx-2 filter-select">
             <h6>Select Account</h6>
             <Select 
               showSearch={true} 
@@ -230,7 +242,7 @@ function Home() {
               })}
             </Select>
           </div>
-          <div className="d-flex flex-column mx-5">
+          <div className="d-flex flex-column mx-2 filter-select">
             <h6>Select Account Type</h6>
             <Select 
               optionFilterProp="children"
@@ -245,7 +257,7 @@ function Home() {
               })}
             </Select>
           </div>
-          <div className="d-flex flex-column mx-5">
+          <div className="d-flex flex-column mx-2 filter-select">
             <h6>Select Category</h6>
             <Select
               optionFilterProp="children"
@@ -260,6 +272,17 @@ function Home() {
                 return (<Select.Option title={category.description} key={category._id} value={category._id}>{category.name}</Select.Option>)             
               })}
             </Select>
+          </div>
+        </Row>
+      </div>}
+      {loading && <Spinner />}
+      <div className="filter d-flex justify-content-between align-items-center">
+        <div className="d-flex">
+          <div>
+            <FilterFilled
+              onClick={() => setShowFilters(true)}
+              size={30}
+            />
           </div>
         </div>
 
