@@ -37,22 +37,22 @@ function Home() {
   const [categoriesData, setCategoriesData] = useState([])
   const [accountTypesData, setAccountTypesData] = useState([])
 
-  const getTransactions = async ({frequency, selectedRange, type, account, category, accountType}) => {
+  const getTransactions = async () => {
     try {
       const user = JSON.parse(localStorage.getItem("expense-tracker-user"));
       const selectionFilter = {
-        account: account === 'all' ? undefined : account,
-        category: category === 'all' ? undefined : category,
-        accountType: accountType === 'all' ? undefined : accountType
+        account: formValues.account === 'all' ? undefined : formValues.account,
+        category: formValues.category === 'all' ? undefined : formValues.category,
+        accountType: formValues.accountType === 'all' ? undefined : formValues.accountType
       }
       setLoading(true);
       const response = await axios.get(
         `/api/organizations/${user.organization}/transactions`,
         {
           params: {
-            frequency,
-            ...(frequency === "custom" && { selectedRange }),
-            type,
+            frequency: formValues.frequency,
+            ...(formValues.frequency === "custom" && { selectedRange: formValues.selectedRange }),
+            type: formValues.type,
             ...selectionFilter
           }
         }
@@ -61,6 +61,7 @@ function Home() {
       setTransactionsData(transactions);
       setLoading(false);
     } catch (error) {
+      console.log(error)
       setLoading(false);
       message.error("Something went wrong");
     }
@@ -86,6 +87,7 @@ function Home() {
     } catch (error) {
       setLoading(false);
       message.error("Something went wrong");
+      console.log(error)
     }
   };
 
