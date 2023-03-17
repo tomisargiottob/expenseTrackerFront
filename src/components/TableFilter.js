@@ -9,7 +9,6 @@ function TableFilters({
     accountTypesData,
     filterValues,
 }) {
-    console.log(filterValues)
     return (
       <div className="filter-container">
         <Row className="filter-header">

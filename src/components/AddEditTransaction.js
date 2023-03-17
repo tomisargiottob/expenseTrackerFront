@@ -70,6 +70,7 @@ function AddEditTransaction({
       setSelectedItemForEdit(null);
       setLoading(false);
     } catch (error) {
+      console.log(error)
       message.error("Something went wrong");
       setLoading(false);
     }
